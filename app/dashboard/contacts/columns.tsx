@@ -22,7 +22,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { useRouter } from 'next/navigation'
 
 interface ContactWithDetails extends Contact {
   person_details?: PersonDetails & {
@@ -68,8 +67,11 @@ export const columns: ColumnDef<ContactWithDetails>[] = [
     header: '',
     cell: ({ row }) => {
       const contact = row.original
+      const handleClick = () => {
+        window.location.href = `/dashboard/contacts/${contact.id}`
+      }
       return (
-        <Avatar className="cursor-pointer" onClick={() => router.push(`/dashboard/contacts/${contact.id}`)}>
+        <Avatar className="cursor-pointer" onClick={handleClick}>
           <AvatarImage src={contact.profile_picture_url || ''} />
           <AvatarFallback>
             {contact.full_name.split(' ').map((n: string) => n[0]).join('')}
@@ -84,13 +86,15 @@ export const columns: ColumnDef<ContactWithDetails>[] = [
       <DataTableColumnHeader column={column} title="Name" />
     ),
     cell: ({ row }) => {
-      const router = useRouter()
       const contact = row.original
+      const handleClick = () => {
+        window.location.href = `/dashboard/contacts/${contact.id}`
+      }
       return (
         <div className="flex flex-col">
           <div
             className="font-medium cursor-pointer hover:underline"
-            onClick={() => router.push(`/dashboard/contacts/${contact.id}`)}
+            onClick={handleClick}
           >
             {contact.full_name}
           </div>
@@ -161,8 +165,15 @@ export const columns: ColumnDef<ContactWithDetails>[] = [
   {
     id: 'actions',
     cell: ({ row }) => {
-      const router = useRouter()
       const contact = row.original
+
+      const handleEdit = () => {
+        window.location.href = `/dashboard/contacts/${contact.id}/edit`
+      }
+
+      const handleView = () => {
+        window.location.href = `/dashboard/contacts/${contact.id}`
+      }
 
       return (
         <DropdownMenu>
@@ -173,15 +184,10 @@ export const columns: ColumnDef<ContactWithDetails>[] = [
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem
-              onClick={() => router.push(`/dashboard/contacts/${contact.id}`)}
-            >
+            <DropdownMenuItem onClick={handleView}>
               View Details
             </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => router.push(`/dashboard/contacts/${contact.id}/edit`)}
-            >
+            <DropdownMenuItem onClick={handleEdit}>
               Edit Contact
             </DropdownMenuItem>
             <DropdownMenuSeparator />
