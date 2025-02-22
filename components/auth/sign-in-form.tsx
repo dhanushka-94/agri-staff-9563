@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { supabase } from '@/lib/supabase'
+import { createBrowserClient } from '@/lib/supabase'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { InfoCircledIcon } from '@radix-ui/react-icons'
 import {
@@ -13,6 +13,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog'
+import { toast } from 'sonner'
 
 export function SignInForm() {
   const [email, setEmail] = useState('')
@@ -22,6 +23,7 @@ export function SignInForm() {
   const [showForgotDialog, setShowForgotDialog] = useState(false)
   const router = useRouter()
   const searchParams = useSearchParams()
+  const supabase = createBrowserClient()
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -29,22 +31,59 @@ export function SignInForm() {
     setError(null)
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
         password,
       })
 
-      if (error) throw error
+      if (signInError) {
+        if (signInError.message.includes('Email not confirmed')) {
+          toast.error('Please verify your email address before signing in')
+        } else if (signInError.message.includes('Invalid login credentials')) {
+          setError('Invalid email or password')
+        } else {
+          throw signInError
+        }
+        return
+      }
 
       if (data?.session) {
         // Get the redirect path from URL or default to dashboard
         const redirectTo = searchParams.get('redirectedFrom') || '/dashboard'
+        
+        // Fetch user profile
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', data.session.user.id)
+          .single()
+
+        if (profileError && !profileError.message.includes('Results contain 0 rows')) {
+          throw profileError
+        }
+
+        // Create profile if it doesn't exist
+        if (!profile) {
+          const { error: createError } = await supabase
+            .from('profiles')
+            .insert([{
+              id: data.session.user.id,
+              email: data.session.user.email,
+              full_name: data.session.user.user_metadata.full_name || email.split('@')[0],
+              role: 'user'
+            }])
+
+          if (createError) throw createError
+        }
+
+        toast.success('Successfully signed in')
         router.push(redirectTo)
         router.refresh()
       }
     } catch (error) {
       console.error('Sign in error:', error)
-      setError(error instanceof Error ? error.message : 'Invalid email or password')
+      setError(error instanceof Error ? error.message : 'An error occurred during sign in')
+      toast.error('Failed to sign in')
     } finally {
       setLoading(false)
     }
@@ -91,9 +130,9 @@ export function SignInForm() {
             </button>
           </div>
           {error && (
-            <div className="p-3 text-sm bg-red-50 text-red-600 rounded-md">
-              {error}
-            </div>
+            <Alert variant="destructive">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
           )}
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? 'Signing in...' : 'Sign in'}
