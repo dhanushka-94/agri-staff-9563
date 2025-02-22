@@ -14,6 +14,9 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog'
 import { toast } from 'sonner'
+import type { Database } from '@/types/database'
+
+type Profile = Database['public']['Tables']['profiles']['Row']
 
 export function SignInForm() {
   const [email, setEmail] = useState('')
@@ -54,7 +57,7 @@ export function SignInForm() {
         // Fetch user profile
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
-          .select('*')
+          .select()
           .eq('id', data.session.user.id)
           .single()
 
@@ -64,14 +67,18 @@ export function SignInForm() {
 
         // Create profile if it doesn't exist
         if (!profile) {
+          const newProfile: Database['public']['Tables']['profiles']['Insert'] = {
+            id: data.session.user.id,
+            email: data.session.user.email!,
+            full_name: data.session.user.user_metadata.full_name || email.split('@')[0],
+            role: 'user',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }
+
           const { error: createError } = await supabase
             .from('profiles')
-            .insert([{
-              id: data.session.user.id,
-              email: data.session.user.email,
-              full_name: data.session.user.user_metadata.full_name || email.split('@')[0],
-              role: 'user'
-            }])
+            .insert([newProfile])
 
           if (createError) throw createError
         }
