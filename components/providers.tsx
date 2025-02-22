@@ -7,5 +7,5 @@ export function Providers({ children }: { children: React.ReactNode }) {
     // Any client-side-only initialization can go here
   }, [])
 
-  return children
+  return <>{children}</>
 } 

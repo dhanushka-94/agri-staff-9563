@@ -7,9 +7,23 @@ import { PlusIcon } from '@radix-ui/react-icons'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Designation, DesignationTreeNode } from '@/types/designations'
+import { Designation } from '@/types/designations'
 import { DesignationTree } from '@/components/designations/designation-tree'
 import { DesignationForm } from '@/components/designations/designation-form'
+
+interface DesignationWithParent {
+  id: string
+  name: string
+  parent_id: string | null
+  level: number
+  order: number
+  created_at: string
+  updated_at: string
+  parent: {
+    id: string
+    name: string
+  } | null
+}
 
 export default function DesignationsPage() {
   const [loading, setLoading] = useState(true)
@@ -49,7 +63,7 @@ export default function DesignationsPage() {
           order,
           created_at,
           updated_at,
-          parent:designations!parent_id(
+          parent:parent_id (
             id,
             name
           )
@@ -76,10 +90,10 @@ export default function DesignationsPage() {
         order: designation.order,
         created_at: designation.created_at,
         updated_at: designation.updated_at,
-        parent: designation.parent ? {
-          id: designation.parent.id,
-          name: designation.parent.name
-        } : undefined
+        parent: designation.parent && {
+          id: (designation.parent as any).id,
+          name: (designation.parent as any).name
+        }
       }))
 
       setDesignations(processedData)

@@ -54,6 +54,12 @@ interface Subdivision {
   institute_id: string
 }
 
+interface DeleteConfirmation {
+  institute: Institute
+  subdivisions: { id: string; name: string }[]
+  isOpen: boolean
+}
+
 export default function InstitutesPage() {
   const [institutes, setInstitutes] = useState<Institute[]>([])
   const [departments, setDepartments] = useState<Department[]>([])
@@ -66,18 +72,8 @@ export default function InstitutesPage() {
     department_id: '',
     order: 0
   })
+  const [deleteConfirmation, setDeleteConfirmation] = useState<DeleteConfirmation | null>(null)
   const supabase = createClientComponentClient()
-
-  // Add state for delete confirmation
-  const [deleteConfirmation, setDeleteConfirmation] = useState<{
-    institute: Institute | null;
-    subdivisions: Subdivision[];
-    isOpen: boolean;
-  }>({
-    institute: null,
-    subdivisions: [],
-    isOpen: false
-  });
 
   // Add state for order confirmation
   const [orderConfirmation, setOrderConfirmation] = useState<{
@@ -215,7 +211,7 @@ export default function InstitutesPage() {
 
       // Update local state
       setInstitutes(institutes.filter(inst => inst.id !== id))
-      setDeleteConfirmation({ institute: null, subdivisions: [], isOpen: false })
+      setDeleteConfirmation(null)
     } catch (error) {
       console.error('Error deleting institute:', error)
       setError(error instanceof Error ? error.message : 'An error occurred while deleting the institute')
@@ -508,51 +504,48 @@ export default function InstitutesPage() {
         </DialogContent>
       </Dialog>
 
-      <Dialog 
-        open={deleteConfirmation.isOpen} 
+      <Dialog
+        open={Boolean(deleteConfirmation?.isOpen)}
         onOpenChange={(open) => {
-          if (!open) setDeleteConfirmation({ institute: null, subdivisions: [], isOpen: false })
+          if (!open) setDeleteConfirmation(null)
         }}
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Cannot Delete Institute</DialogTitle>
+            <DialogTitle>Delete Institute</DialogTitle>
             <DialogDescription>
-              This institute cannot be deleted because it has the following subdivision(s):
+              Are you sure you want to delete this institute? This action cannot be undone.
+              {deleteConfirmation?.subdivisions.length ? (
+                <div className="mt-2 text-destructive">
+                  Warning: The following subdivisions will also be deleted:
+                </div>
+              ) : null}
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <div className="space-y-2">
-              {deleteConfirmation.subdivisions.map((subdivision) => (
+              {deleteConfirmation?.subdivisions.map((subdivision) => (
                 <div
                   key={subdivision.id}
-                  className="flex items-center gap-2 p-2 rounded-md bg-muted/50"
+                  className="flex items-center gap-2 p-2 rounded-md bg-muted"
                 >
-                  <Badge variant="secondary">
-                    {subdivision.name}
-                  </Badge>
+                  <span>{subdivision.name}</span>
                 </div>
               ))}
             </div>
-            <p className="mt-4 text-sm text-muted-foreground">
-              To delete this institute, you must first delete or reassign all its subdivisions.
-            </p>
           </div>
           <DialogFooter>
             <Button
               variant="outline"
-              onClick={() => setDeleteConfirmation({ institute: null, subdivisions: [], isOpen: false })}
+              onClick={() => setDeleteConfirmation(null)}
             >
               Close
             </Button>
             <Button
-              variant="default"
-              onClick={() => {
-                // Navigate to subdivisions page
-                window.location.href = '/dashboard/organization/subdivisions'
-              }}
+              variant="destructive"
+              onClick={() => deleteConfirmation?.institute && handleDelete(deleteConfirmation.institute.id)}
             >
-              View Subdivisions
+              Delete
             </Button>
           </DialogFooter>
         </DialogContent>

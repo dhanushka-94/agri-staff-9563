@@ -42,7 +42,7 @@ export function ImageUpload({
       const fileName = `${Date.now()}.${fileExt}`
 
       // Upload to Supabase Storage
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('profile-pictures')
         .upload(fileName, file, {
           cacheControl: '3600',

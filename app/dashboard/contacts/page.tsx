@@ -17,7 +17,6 @@ import {
   ListIcon,
   FilterIcon,
   ArrowUpDownIcon,
-  TrashIcon
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import {
@@ -27,7 +26,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   Select,
   SelectContent,
@@ -39,7 +37,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'

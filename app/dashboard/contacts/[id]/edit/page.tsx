@@ -46,7 +46,7 @@ interface FormData {
   person_status?: PersonStatus
   // Building specific fields
   building_status?: BuildingStatus
-  profile_picture_url?: string
+  profile_picture_url?: string | null
 }
 
 interface EditContactPageProps {
@@ -98,6 +98,7 @@ export default function EditContactPage({ params }: EditContactPageProps) {
         official_email: contact.official_email,
         office_address: contact.office_address,
         description: contact.description,
+        profile_picture_url: contact.profile_picture_url,
       }
 
       if (contact.type === 'person') {
@@ -159,6 +160,7 @@ export default function EditContactPage({ params }: EditContactPageProps) {
           official_email: formData.official_email,
           office_address: formData.office_address,
           description: formData.description,
+          profile_picture_url: formData.profile_picture_url,
         })
         .eq('id', params.id)
 

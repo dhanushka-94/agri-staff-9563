@@ -107,7 +107,7 @@ export function DesignationForm({
 
     // Check for circular reference
     if (designation && formData.parent_id) {
-      let currentParentId = formData.parent_id
+      let currentParentId: string | null = formData.parent_id
       const visited = new Set<string>()
       
       while (currentParentId) {
@@ -121,7 +121,7 @@ export function DesignationForm({
         }
         visited.add(currentParentId)
         const parent = designations.find(d => d.id === currentParentId)
-        currentParentId = parent?.parent_id || null
+        currentParentId = parent?.parent_id ?? null
       }
     }
 

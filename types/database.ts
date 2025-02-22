@@ -1,7 +1,80 @@
-export type ContactType = 'person' | 'building'
-export type PersonTitle = 'Mr' | 'Mrs' | 'Miss' | 'Ms' | 'Dr' | 'Prof' | 'Eng'
-export type PersonStatus = 'on_duty' | 'off_duty' | 'retired'
-export type BuildingStatus = 'operational' | 'non_operational'
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
+
+export interface Database {
+  public: {
+    Tables: {
+      designations: {
+        Row: {
+          id: string
+          name: string
+          parent_id: string | null
+          level: number
+          order: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          parent_id?: string | null
+          level?: number
+          order?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          parent_id?: string | null
+          level?: number
+          order?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "designations_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "designations"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      // ... other tables
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
+    }
+    Enums: {
+      contact_type: "person" | "building"
+      person_title: "Mr" | "Mrs" | "Miss" | "Ms" | "Dr" | "Prof" | "Eng"
+      person_status: "on_duty" | "off_duty" | "retired"
+      building_status: "operational" | "non_operational"
+    }
+  }
+}
+
+export type ContactType = Database["public"]["Enums"]["contact_type"]
+export type PersonTitle = Database["public"]["Enums"]["person_title"]
+export type PersonStatus = Database["public"]["Enums"]["person_status"]
+export type BuildingStatus = Database["public"]["Enums"]["building_status"]
+
+export type Designation = Database["public"]["Tables"]["designations"]["Row"] & {
+  parent?: {
+    id: string
+    name: string
+  }
+}
 
 export interface Department {
   id: string
@@ -34,13 +107,6 @@ export interface Unit {
   updated_at: string
 }
 
-export interface Designation {
-  id: string
-  name: string
-  created_at: string
-  updated_at: string
-}
-
 export interface Contact {
   id: string
   type: ContactType
@@ -57,7 +123,7 @@ export interface Contact {
   official_email?: string
   office_address?: string
   description?: string
-  profile_picture_url?: string
+  profile_picture_url?: string | null
   created_at: string
   updated_at: string
 }
